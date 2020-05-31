@@ -1,0 +1,42 @@
+%{
+int line_count = 1;
+%}
+NUM [1-9][0-9]*
+STRING (["][^"]*["])|(['][^']*['])
+TIME ([2][0-3]|[0-1][0-9]):[0-5][0-9] 
+%%
+\n line_count++;
+\< printf("%d tOPEN\n",line_count);
+\<\/ printf("%d tEND\n",line_count);
+\/\> printf("%d tSELF\n",line_count);
+\> printf("%d tCLOSE\n",line_count);
+M printf("%d tMON\n",line_count);
+T printf("%d tTUE\n",line_count);   
+W printf("%d tWED\n",line_count);  
+R printf("%d tTHU\n",line_count);  
+F printf("%d tFRI\n",line_count);  
+course printf("%d tCOURSE\n",line_count);
+meeting printf("%d tMEETING\n",line_count);
+item printf("%d tITEM\n",line_count);
+class printf("%d tCLASS\n",line_count);
+constraint printf("%d tCONSTRAINT\n",line_count);
+code= printf("%d tCODE\n",line_count);
+type= printf("%d tTYPE\n",line_count);
+section= printf("%d tSECTION\n",line_count);
+start= printf("%d tSTART\n",line_count);
+day= printf("%d tDAY\n",line_count);
+name= printf("%d tNAME\n",line_count);
+instructor= printf("%d tINSTRUCTOR\n",line_count);
+crn= printf("%d tCRN\n",line_count);
+capacity= printf("%d tCAPACITY\n",line_count);
+end= printf("%d tEND_A\n",line_count);
+{NUM} printf("%d tNUM (%s)\n",line_count,yytext);
+{STRING} { yytext[0] = '('; yytext[yyleng-1] = ')';	  		
+	   printf("%d tSTRING %s\n",line_count,yytext);}
+{TIME} printf("%d tTIME (%s)\n",line_count,yytext);
+.
+%%
+int main()
+{
+	yylex();
+}

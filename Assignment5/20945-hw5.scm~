@@ -1,0 +1,62 @@
+(define twoOperatorCalculator (lambda(lst) 
+				(cond 
+				 ((null? lst) #f)
+				 ((eq? (length lst) 2) #f)
+				 ((and (eq? (length lst) 1) (number? (car lst))) (car lst))
+				 ((not (or (eq? (cadr lst) '+) (eq? (cadr lst) '-))) #f)
+				 ((not (number? (car lst))) #f)
+				 ((not (number? (caddr lst))) #f)
+				 ((eq? (length lst) 3) 
+				  (if (eq? (cadr lst) '+) 
+				      (+ (car lst) (caddr lst))
+				      (- (car lst) (caddr lst))))
+				 ((eq? (cadr lst) '+) (twoOperatorCalculator (cons (+ (car lst) (caddr lst)) (cdddr lst))))
+				 ((eq? (cadr lst) '-) (twoOperatorCalculator (cons (- (car lst) (caddr lst)) (cdddr lst))))
+				 (else #f))))
+ 
+(define fourOperatorCalculator (lambda(lst) 
+				(cond 
+				 ((null? lst) #f)
+				 ((eq? (length lst) 2) #f)
+				 ((and (eq? (length lst) 1) (number? (car lst))) (list (car lst)))
+				 ((not (number? (car lst))) #f)
+				 ((not (number? (caddr lst))) #f)
+				 ((or (eq? (cadr lst) '+) (eq? (cadr lst) '-)) (cons (car lst) (cons (cadr lst) (fourOperatorCalculator (cddr lst)))))
+				 ((eq? (cadr lst) '*) (fourOperatorCalculator (cons (* (car lst) (caddr lst)) (cdddr lst))))
+				 ((eq? (cadr lst) '/) 
+				  (if (eq? (caddr lst) 0)
+				      #f
+				      (fourOperatorCalculator (cons (/ (car lst) (caddr lst)) (cdddr lst)))))
+				 (else #f))))
+
+(define calculatorNested (lambda(lst)
+			   (cond
+			     ((null? lst) #f)
+			     ((and (eq? (length lst) 1) (number? (car lst))) (list (car lst)))
+			     ((and (list? (car lst)) (not (null? (cdr lst)))) (cons (twoOperatorCalculator (fourOperatorCalculator (calculatorNested (car lst)))) (cons (cadr lst) (calculatorNested (cddr lst)))))
+			     ((and (list? (car lst)) (null? (cdr lst))) (list (twoOperatorCalculator (fourOperatorCalculator (calculatorNested (car lst))))))
+			     ((and (not (list? (car lst))) (not (null? (cdr lst)))) (cons (car lst) (cons (cadr lst) (calculatorNested (cddr lst)))))
+			     (else (list (car lst))))))
+
+(define checkOperators (lambda(lst)
+			 (cond
+			  ((null? lst) #f)
+			  ((and (list? (car lst)) (null? (cdr lst))) (checkOperators (car lst)))
+			  ((and (list? (car lst)) (not (null? (cdr lst)))) (and (checkOperators (car lst)) (checkOperators (cdr lst))))
+			  ((and (number? (car lst)) (not (null? (cdr lst)))) 
+			   (if (not (number? (cadr lst)))
+			       (checkOperators (cdr lst))
+			       #f))
+			  ((and (number? (car lst)) (null? (cdr lst))) #t)
+			  ((not (and (or (eq? (car lst) '+) (eq? (car lst) '-) (eq? (car lst) '*) (eq? (car lst) '/ )) (not (number? (car lst))))) #f)
+			  ((and (or (eq? (car lst) '+) (eq? (car lst) '-) (eq? (car lst) '*) (eq? (car lst) '/ )) (not (null? (cdr lst)))) (checkOperators (cdr lst)))
+			  ((and (or (eq? (car lst) '+) (eq? (car lst) '-) (eq? (car lst) '*) (eq? (car lst) '/ )) (null? (cdr lst))) #f)
+			  (else #t))))
+(define calculator (lambda(lst)
+		     (cond
+		      ((null? lst) #f)
+		      (else 
+		       (if (checkOperators lst)
+			   (twoOperatorCalculator (fourOperatorCalculator (calculatorNested lst)))
+			   #f)))))
+		      

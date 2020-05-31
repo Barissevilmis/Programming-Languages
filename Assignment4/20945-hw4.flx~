@@ -1,0 +1,57 @@
+%{
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "20945-hw4.h"
+#include "20945-hw4.tab.h"
+int noOfLine = 1;
+%}
+
+
+DIGIT    [0-9]
+%%
+\n noOfLine++;
+[/][>] return tSELF;
+[<] return tOPEN;
+[<][/] return tEND;
+course {yylval.TOKEN.line_num = noOfLine;
+        strcpy(yylval.TOKEN.str,yytext);
+        return tCOURSE;};
+meeting {yylval.TOKEN.line_num = noOfLine;
+         strcpy(yylval.TOKEN.str,yytext);
+	 return tMEETING;};
+item return tITEM;
+code= return tCODE;
+type= return tTYPE;
+section= return tSECTION;
+start= return tSTART;
+day= return tDAY;
+M return tMON;
+T return tTUE;
+R return tTHU;
+[>] return tCLOSE;
+class {yylval.TOKEN.line_num = noOfLine;
+       strcpy(yylval.TOKEN.str,yytext);
+       return tCLASS;};
+constraint {yylval.TOKEN.line_num = noOfLine;
+            strcpy(yylval.TOKEN.str,yytext);
+       	    return tCONSTRAINT;};
+name= return tNAME;
+instructor= return tINSTRUCTOR;
+crn= return tCRN;
+capacity= return tCAPACITY;
+end= return tEND_A;
+'[^']*'	{strcpy(yylval.mystr,yytext);
+	 return tSTRING;};
+["][^"]*["] {strcpy(yylval.mystr,yytext);
+	     return tSTRING;};
+{DIGIT}+ {yylval.value = atoi(yytext);
+	  return tNUM;};
+W return  tWED;
+F return  tFRI;
+{DIGIT}{2}:{DIGIT}{2} {strcpy(yylval.mystr,yytext);
+		       return tTIME;};
+\t 
+[ ] 
+.
+%%

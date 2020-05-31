@@ -1,0 +1,203 @@
+#ifndef __20945_HW4_H
+#define __20945_HW4_H
+
+typedef enum {courseInitt, courseStartt, courseEndd, classInitt, classStartt, classEndd, classClosee, constraintInitt, constraintEndd, constraintStartt, meetingInitt, meetingStartt, meetingEndd, coursee, classIntt, classStrr, meetingTimee, meetingDayy, dayy, itemInitt, itemStartt, itemEndd, itemIntt, itemStrr} NodeType;
+typedef enum {OPEN, CLOSE, SELF, END, COURSETAG, MEETINGTAG, CLASSTAG, CONSTRAINTTAG, ITEMTAG} TagType;
+typedef enum {CODE, NAME, TYPE} CourseType;
+typedef enum {DAY, START, END_A} MeetingType;
+typedef enum {CODE_I, CRN_I} ItemType;
+typedef enum {SECTION, INSTRUCTOR, CRN, CAPACITY} ClassType;
+typedef enum {M, T, W, R, F} DayType;
+
+typedef struct CLASSstart
+{
+  TagType open;
+  char class[50];
+  int line;
+} CLASSstart;
+
+typedef struct CLASSend
+{
+  TagType close;
+} CLASSend;
+
+typedef struct CLASSclose
+{
+  TagType end;
+  char class[50];
+  int line;
+  TagType close;
+} CLASSclose;
+
+typedef struct CLASSint
+{
+  ClassType item;
+  int val;
+} CLASSint;
+
+typedef struct CLASSstr
+{
+  ClassType item;
+  char str[50];
+  int line;
+} CLASSstr;
+
+typedef struct ITEMstart
+{
+  TagType open;
+  TagType item;
+} ITEMstart;
+
+typedef struct ITEMend
+{
+  TagType self;
+} ITEMend;
+
+typedef struct ITEMint
+{
+  ItemType item;
+  int val;
+} ITEMint;
+
+typedef struct ITEMstr
+{
+  ItemType item;
+  char str[50];
+} ITEMstr;
+
+typedef struct CONSTRAINTstart
+{
+  TagType open;
+  char constraint[50];
+  int line;
+  TagType close;
+} CONSTRAINTstart;
+
+typedef struct CONSTRAINTend
+{
+  TagType end;
+  char constraint[50];
+  int line;
+  TagType close;
+} CONSTRAINTend;
+
+typedef struct MEETINGstart
+{
+  TagType open;
+  char meeting[50];
+  int line;
+} MEETINGstart;
+
+typedef struct MEETINGend
+{
+  TagType end;
+} MEETINGend;
+
+typedef struct MEETINGday
+{
+  MeetingType item;
+  struct ELEMENT *day;
+} MEETINGday;
+
+
+typedef struct MEETINGtime
+{
+  MeetingType item;
+  char time[50];
+} MEETINGtime;
+
+typedef struct COURSEstart
+{
+  TagType open;
+  char course[50];
+  int line;
+  struct ELEMENTlist *child;
+  TagType close;
+} COURSEstart;
+
+typedef struct COURSEend
+{
+  TagType end;
+  char course[50];
+  int line;
+  TagType close;
+} COURSEend;
+
+typedef struct COURSES
+{
+  CourseType item;
+  char str[50];
+} COURSES;
+
+typedef struct DAYS
+{
+  DayType day;
+} DAYS;
+
+typedef struct INIT
+{
+  struct ELEMENT *item1;
+  struct ELEMENTlist *item2;
+  struct ELEMENT *item3;
+} INIT;
+
+typedef struct ITEMinit
+{
+  struct ELEMENT *item1;
+  struct ELEMENT *item2;
+  struct ELEMENT *item3;
+} ITEMinit;
+
+typedef struct MEETINGinit
+{
+  struct ELEMENT *item1;
+  struct ELEMENTlist *item2;
+  struct ELEMENT *item3;
+  struct ELEMENTlist *item4;
+  struct ELEMENT *item5;
+} MEETINGinit;
+
+typedef union
+{
+  COURSEstart cbptr;
+  COURSEend ceptr;
+  COURSES cptr;
+
+  CONSTRAINTstart cosptr;
+  CONSTRAINTend coeptr;
+
+  CLASSstart clsptr;
+  CLASSend cleptr;
+  CLASSclose clcptr;
+  CLASSint cliptr;
+  CLASSstr clstrptr;
+
+  ITEMstart isptr;
+  ITEMend ieptr;
+  ITEMint iiptr;
+  ITEMstr istrptr;
+
+  MEETINGstart msptr;
+  MEETINGend meptr;
+  MEETINGtime mtptr;
+  MEETINGday mdptr;
+  DAYS dptr;
+  
+  INIT iptr;
+  MEETINGinit miptr;
+  ITEMinit itemptr;
+} ELEMENTexpr;
+
+typedef struct ELEMENT
+{
+  NodeType thisNodeType;
+  ELEMENTexpr *item;
+} ELEMENT;
+
+typedef struct ELEMENTlist
+{
+  struct ELEMENTlist *node;
+  struct ELEMENT *child; 
+} ELEMENTlist;
+
+#endif

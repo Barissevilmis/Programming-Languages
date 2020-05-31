@@ -1,0 +1,133 @@
+(define built-in-operator (lambda (op-symbol) 
+			    (cond 
+			     ((equal? op-symbol '+) +)
+			     ((equal? op-symbol '-) -)
+			     ((equal? op-symbol '*) *)
+			     ((equal? op-symbol '/) /)
+			     (else (error "Not built in operator: " op-symbol)))))
+
+(define built-in-operator? (lambda (op-symbol)
+                            (cond
+                             ((equal? op-symbol '+) #t)
+                             ((equal? op-symbol '-) #t)
+                             ((equal? op-symbol '*) #t)
+                             ((equal? op-symbol '/) #t)
+                             (else #f))))
+
+(define define-stmt? (lambda (e)
+		       (and (list? e) (equal? (car e) 'define) (symbol? (cadr e)) (= (length e) 3))))
+
+(define if-stmt? (lambda (e)
+		       (and (list? e) (equal? (car e) 'if) (= (length e) 4))))
+
+(define lambda-stmt? (lambda (e)
+		       (and (list? e) (equal? (car e) 'lambda) (= (length e) 3))))
+
+(define formal_list? (lambda (e)
+			    (cond
+			     ((and (list? e) (symbol? (car e)) (= (length e) 1)) #t)
+			     ((and (list? e) (symbol? (car e)) (not (null? (cdr e)))) (formal_list? (cdr e)))
+			     (else (error "Formal list incorrect!"e)))))
+(define var-binding-list? (lambda (e)
+			    (cond
+			     ((and (list? e) (symbol? (caar e) (= (length (car e) 2))) (not (null? (cdr e)))) (var-binding-list? (cdr e)))
+			     ((and (list? e) (symbol? (caar e) (= (length (car e) 2))) ((null? (cdr e)))) #t)
+			     (else (error "Var-binding-list incorrect!"e)))))
+
+(define let-stmt? (lambda (e)
+		       (and (list? e) (equal? (car e) 'let) (= (length e) 3))))
+
+(define letstar-stmt? (lambda (e)
+		       (and (list? e) (equal? (car e) 'let*) (= (length e) 3))))
+
+(define application-stmt? (lambda (e)
+		       (and (list? e) (operator-stmt? (car e) (operand-list? (cdr e))))))
+
+(define operand-list? (lambda (e)
+			(cond
+			 ((and (list? e) (operand-list? (cdr))) #t)
+			 ((null? e) #t)
+			 (else #f))))
+
+(define operator-stmt? (lambda (e)
+			 (cond
+			  ((built-in-operator e) #t)
+			  ((lambda-stmt? e) #t)
+			  ((= (lenght e) 1) #t)
+			  (else #f))))
+
+(define get-value (lambda (var env)
+    (cond
+      ((null? env) (error "get-value: unbound variable -->" env))
+      ((equal? (caar env) var) (cdar env))
+      (else (get-value var (cdr env))))))
+			     
+
+(define extend-env (lambda (var val old-env)
+      (cons (cons var val) old-env)))
+
+(define repl (lambda (env)
+  (let* (
+         (dummy1 (display "cs305> "))
+         (expr (read))
+	 (new-env (if (define-stmt? expr)
+                      (extend-env (cadr expr) (cs305-interpret (caddr expr) env) env)
+                      env))
+
+	 (val (if (define-stmt? expr)
+                  (cadr expr)
+                  (cs305-interpret expr env)))
+
+         (dummy2 (display "cs305: "))
+         (dummy3 (display val))
+
+         (dummy4 (newline))
+         (dummy4 (newline)))
+     (repl new-env))))
+
+(define cs305-interpret (lambda (e env)
+  (cond 
+    ((number? e) 
+     e)
+
+    ((symbol? e) 
+     (get-value e env))
+
+    ((if-stmt? e) 
+     (if (equal? (cs305-interpret (cadr e) env) 0)
+	 (cs305-interpret (cadddr e) env)
+	 (cs305-interpret (caddr e) env)))
+
+    ((let-stmt? e) (let ((vars (map car (cadr e))) (initvals (map cadr (cadr e))))
+		     (let ((vals (map (lambda (n) (cs305-interpret n env)) initvals)))
+		       (let ((new-env (append (map cons vars vals) env)))
+			 (cs305-interpret (caddr e) new-env)))))
+
+    ((letstar-stmt? e) (let ((new-env (extend-env (caaadr e) (cs305-interpret (car (cdaadr e)) env) env)))
+			 (if (> (length (cadr e)) 1)
+			     (cs305-interpret (list (car e) (cdadr e) (caddr e)) new-env)
+			     (cs305-interpret (caddr e) new-env))))
+    ((lambda-stmt? e) e)
+
+    ((lambda-stmt? (car e)) (let ((new-env (append (map cons (cadar e) (cdr e)) env)))
+			       (cs305-interpret (caddar e) new-env)))
+
+    ((not (list? e)) 
+          (error "cs305-interpret: cannot evaluate -->" e))
+
+
+    ((built-in-operator? (car e))
+       (let ((operands (map cs305-interpret (cdr e) (make-list (length (cdr e)) env)))
+             (operator (cond 
+			((and (equal? (car e) '-) (< (length e) 3)) (error "Subtraction has wrong number of elements!"e))
+			((and (equal? (car e) '/) (< (length e) 3)) (error "Division has wrong number of elements!"e))
+			(else (built-in-operator (car e))))))
+	       (apply operator operands)))
+
+    ((lambda-stmt? (get-value (car e) env))
+     (cs305-interpret (caddr (get-value (car e) env)) (append (map cons (cadr (get-value (car e) env)) (cdr e)) env))
+     ))))
+
+
+
+(define cs305 (lambda () (repl '())))
